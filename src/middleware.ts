@@ -1,37 +1,32 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-
-function isTokenExpired(token: string): boolean {
-	try {
-		const payload = JSON.parse(
-			Buffer.from(token.split('.')[1], 'base64').toString('utf8')
-		)
-		const now = Math.floor(Date.now() / 1000)
-		return payload.exp && payload.exp < now
-	} catch (err) {
-		// If decoding fails, treat as invalid token
-		return true
-	}
-}
+import jwt from 'jsonwebtoken'
 
 export function middleware(request: NextRequest) {
-	const session = request.cookies.get('session')?.value
-
-	const isLoggedIn = !!session
+	const token = request.cookies.get('session')?.value
 	const isLoginPage = request.nextUrl.pathname === '/login'
 
-	// Validate token expiration if logged in
-	if (isLoggedIn && isTokenExpired(session!)) {
-		const response = NextResponse.redirect(new URL('/login', request.url))
-		response.cookies.delete('session') // clear expired cookie
-		return response
+	let isValidToken = false
+
+	if (token) {
+		try {
+			const decoded: any = jwt.decode(token)
+			const now = Math.floor(Date.now() / 1000)
+			if (decoded && decoded.exp > now) {
+				isValidToken = true
+			}
+		} catch (e) {
+			// Invalid token, treat as logged out
+		}
 	}
 
-	if (!isLoggedIn && !isLoginPage) {
+	// redirect to login if not authenticated and not on login page
+	if (!isValidToken && !isLoginPage) {
 		return NextResponse.redirect(new URL('/login', request.url))
 	}
 
-	if (isLoggedIn && isLoginPage) {
+	// redirect to homepage if already logged in and trying to visit login page
+	if (isValidToken && isLoginPage) {
 		return NextResponse.redirect(new URL('/', request.url))
 	}
 
@@ -39,5 +34,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-	matcher: ['/((?!api|_next/static|_next/image|favicon.ico|register).*)'], // protect all routes except static/api
+	matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }

@@ -12,14 +12,23 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from './ui/button'
 import { useTheme } from 'next-themes'
-import { SidebarTrigger, useSidebar } from './ui/sidebar'
+import { SidebarTrigger } from './ui/sidebar'
+import { useAppSelector } from '@/lib/hooks'
+
+function getInitials(fullName?: string): string {
+	if (!fullName) return 'No User'
+	const parts = fullName.trim().split(' ')
+	const firstInitial = parts[0]?.[0] || ''
+	const lastInitial = parts.length > 1 ? parts[parts.length - 1][0] : ''
+	return (firstInitial + lastInitial).toUpperCase()
+}
 
 const Navbar = () => {
 	const { theme, setTheme } = useTheme()
-	const { toggleSidebar } = useSidebar()
+	const user = useAppSelector((state) => state.auth.user)
 
 	const handleLogout = async () => {
-		await fetch('/api/logout')
+		document.cookie = 'session=; Max-Age=0; path=/;'
 		window.location.href = '/login'
 	}
 
@@ -27,9 +36,6 @@ const Navbar = () => {
 		<nav className="flex p-4 items-center justify-between sticky top-0 bg-background z-10">
 			{/* LEFT */}
 			<SidebarTrigger />
-			{/* <Button variant="outline" onClick={toggleSidebar}>
-				Custom Button
-			</Button> */}
 
 			{/* RIGHT */}
 			<div className="flex items-center gap-4">
@@ -60,8 +66,7 @@ const Navbar = () => {
 				<DropdownMenu>
 					<DropdownMenuTrigger>
 						<Avatar>
-							<AvatarImage src="https://avatars.githubusercontent.com/u/122551395" />
-							<AvatarFallback>RS</AvatarFallback>
+							<AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
 						</Avatar>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent sideOffset={10}>

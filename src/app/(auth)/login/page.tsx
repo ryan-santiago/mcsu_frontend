@@ -8,23 +8,35 @@ import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 
 import { useRouter } from 'next/navigation'
+import { useLoginMutation } from '@/services/api'
+import { useAppDispatch } from '@/lib/hooks'
+import { setCredentials } from '@/lib/authSlice'
 
 export default function LoginPage() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [showPassword, setShowPassword] = useState(false)
+	const [login, { isLoading, error }] = useLoginMutation()
 	const router = useRouter()
+	const dispatch = useAppDispatch()
 
-	const handleLogin = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-		const res = await fetch('/api/login', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email, password }),
-		})
+		try {
+			const res = await login({ email, password }).unwrap()
+			document.cookie = `session=${res.token}; path=/; max-age=86400`
 
-		await res.json()
-		router.push('/')
+			dispatch(
+				setCredentials({
+					user: res.data,
+					token: res.token,
+				})
+			)
+
+			router.push('/')
+		} catch (err) {
+			console.error('Login failed:', err)
+		}
 	}
 
 	return (
@@ -37,7 +49,7 @@ export default function LoginPage() {
 					</p>
 				</div>
 
-				<form onSubmit={handleLogin} className="space-y-4">
+				<form onSubmit={handleSubmit} className="space-y-4">
 					<div className="space-y-2">
 						<Label htmlFor="email">Email</Label>
 						<Input
@@ -73,7 +85,7 @@ export default function LoginPage() {
 						</div>
 					</div>
 
-					<Button type="submit" className="w-full">
+					<Button type="submit" className="w-full" disabled={isLoading}>
 						Login
 					</Button>
 				</form>
