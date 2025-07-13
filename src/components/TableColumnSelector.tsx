@@ -8,13 +8,27 @@ import {
 	DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu'
 import { EyeOff } from 'lucide-react'
-import { Table as ReactTable } from '@tanstack/react-table'
+import { VisibilityState } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table'
 
 interface ColumnSelectorProps<TData> {
-	table: ReactTable<TData>
+	columnVisibility: VisibilityState
+	setColumnVisibility: (state: VisibilityState) => void
+	columns: ColumnDef<TData, any>[]
 }
 
-export function ColumnSelector<TData>({ table }: ColumnSelectorProps<TData>) {
+function getColumnId<TData>(col: ColumnDef<TData, any>): string {
+	if ('id' in col && col.id) return col.id
+	if ('accessorKey' in col && typeof col.accessorKey === 'string')
+		return col.accessorKey
+	return ''
+}
+
+export function ColumnSelector<TData>({
+	columnVisibility,
+	setColumnVisibility,
+	columns,
+}: ColumnSelectorProps<TData>) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -24,24 +38,26 @@ export function ColumnSelector<TData>({ table }: ColumnSelectorProps<TData>) {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-48">
-				{table
-					.getAllColumns()
-					.filter(
-						(col) =>
-							col.getCanHide() && col.id !== 'select' && col.id !== 'actions'
-					)
+				{columns
+					.filter((col) => col.id !== 'select' && col.id !== 'actions')
 					.map((column) => {
-						const header = column.columnDef.header
+						const id = getColumnId(column)
+						const header = column.header
 						const label =
 							typeof header === 'function'
-								? column.id.charAt(0).toUpperCase() + column.id.slice(1)
+								? id.charAt(0).toUpperCase() + id.slice(1)
 								: String(header)
 
 						return (
 							<DropdownMenuCheckboxItem
-								key={column.id}
-								checked={column.getIsVisible()}
-								onCheckedChange={(value) => column.toggleVisibility(!!value)}
+								key={id}
+								checked={columnVisibility[id] !== false}
+								onCheckedChange={(checked) => {
+									setColumnVisibility({
+										...columnVisibility,
+										[id]: checked,
+									})
+								}}
 							>
 								{label}
 							</DropdownMenuCheckboxItem>

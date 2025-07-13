@@ -10,6 +10,7 @@ import {
 	SortingState,
 	VisibilityState,
 } from '@tanstack/react-table'
+
 import {
 	Table,
 	TableBody,
@@ -18,23 +19,25 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
-import { useEffect, useState } from 'react'
+
+import { useState } from 'react'
 import { DataTablePagination } from '@/components/TablePagination'
 
 interface GenericDataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
 	data: TData[]
-	onTableReady?: (table: ReturnType<typeof useReactTable<TData>>) => void
+	columnVisibility: VisibilityState
+	onColumnVisibilityChange: (state: VisibilityState) => void
 }
 
 export function GenericDataTable<TData, TValue>({
 	columns,
 	data,
-	onTableReady,
+	columnVisibility,
+	onColumnVisibilityChange,
 }: GenericDataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [rowSelection, setRowSelection] = useState({})
-	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
 	const table = useReactTable({
 		data,
@@ -42,19 +45,15 @@ export function GenericDataTable<TData, TValue>({
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		onSortingChange: setSorting,
-		onRowSelectionChange: setRowSelection,
-		onColumnVisibilityChange: setColumnVisibility,
 		state: {
 			sorting,
 			rowSelection,
 			columnVisibility,
 		},
+		onSortingChange: setSorting,
+		onRowSelectionChange: setRowSelection,
+		onColumnVisibilityChange,
 	})
-
-	useEffect(() => {
-		if (onTableReady) onTableReady(table)
-	}, [table, onTableReady])
 
 	return (
 		<div className="rounded-md border">

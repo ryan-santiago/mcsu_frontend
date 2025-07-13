@@ -8,7 +8,7 @@ import { DataViewToggle } from '@/components/DataViewToggle'
 import { Input } from '@/components/ui/input'
 import { PaymentCard } from './cards'
 import { ColumnSelector } from '@/components/TableColumnSelector'
-import { useReactTable } from '@tanstack/react-table'
+import { VisibilityState } from '@tanstack/react-table'
 
 const dummyData: Payment[] = [
 	{
@@ -37,9 +37,7 @@ const dummyData: Payment[] = [
 export default function PaymentsPage() {
 	const [view, setView] = useState<'table' | 'card'>('table')
 	const [search, setSearch] = useState('')
-
-	const [tableInstance, setTableInstance] =
-		useState<ReturnType<typeof useReactTable<Payment>>>()
+	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
 	const filteredData = dummyData.filter(
 		(p) =>
@@ -61,8 +59,11 @@ export default function PaymentsPage() {
 					onChange={(e) => setSearch(e.target.value)}
 					className="max-w-sm"
 				/>
-
-				{tableInstance && <ColumnSelector table={tableInstance} />}
+				<ColumnSelector
+					columnVisibility={columnVisibility}
+					setColumnVisibility={setColumnVisibility}
+					columns={columns}
+				/>
 			</div>
 
 			<div className="px-4">
@@ -70,7 +71,8 @@ export default function PaymentsPage() {
 					<GenericDataTable
 						columns={columns}
 						data={filteredData}
-						onTableReady={setTableInstance}
+						columnVisibility={columnVisibility}
+						onColumnVisibilityChange={setColumnVisibility}
 					/>
 				) : (
 					<GenericCardList
