@@ -39,7 +39,6 @@ const Navbar = () => {
 
 			{/* RIGHT */}
 			<div className="flex items-center gap-4">
-				<Link href="/">Dashboard</Link>
 				{/* Theme Menu */}
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>

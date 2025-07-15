@@ -42,11 +42,6 @@ const items = [
 		url: '/projects',
 		icon: Projector,
 	},
-	{
-		title: 'Payments',
-		url: '/payments',
-		icon: Projector,
-	},
 ]
 
 const AppSidebar = () => {

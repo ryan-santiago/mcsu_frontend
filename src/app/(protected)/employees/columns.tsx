@@ -1,6 +1,7 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { ColumnDef } from '@tanstack/react-table'
+import { EmployeeDeployment } from '@/types/auth'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
 	DropdownMenu,
@@ -10,19 +11,10 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
-import { ColumnDef } from '@tanstack/react-table'
+import { Button } from '@/components/ui/button'
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
 
-export type Payment = {
-	id: string
-	amount: number
-	username: string
-	email: string
-	status: 'pending' | 'processing' | 'success' | 'failed'
-}
-
-export const columns: ColumnDef<Payment>[] = [
+export const employeeColumns: ColumnDef<EmployeeDeployment>[] = [
 	{
 		id: 'select',
 		header: ({ table }) => (
@@ -41,60 +33,80 @@ export const columns: ColumnDef<Payment>[] = [
 			/>
 		),
 	},
+	{ accessorKey: 'id', header: 'ID' },
+	{ accessorKey: 'firstName', header: 'First Name' },
+	{ accessorKey: 'middleName', header: 'Middle Name' },
+	{ accessorKey: 'lastName', header: 'Last Name' },
 	{
-		accessorKey: 'username',
-		header: 'User',
-	},
-	{
-		accessorKey: 'email',
+		accessorKey: 'fullName',
 		header: ({ column }) => {
 			return (
 				<Button
 					variant="ghost"
 					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
 				>
-					Email
+					Full Name
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			)
 		},
 	},
 	{
-		accessorKey: 'status',
-		header: 'Status',
-		cell: ({ row }) => {
-			const status = row.getValue('status')
+		accessorKey: 'emailAddress',
+		header: 'Email',
+	},
+	{
+		accessorKey: 'mobileNumber',
+		header: 'Mobile',
+	},
+	{
+		accessorKey: 'employmentTeam',
+		header: ({ column }) => {
 			return (
-				<div
-					className={cn(
-						`p-1 rounded-md w-max text-xs`,
-						status === 'pending' && 'bg-yellow-500/40',
-						status === 'success' && 'bg-green-500/40',
-						status === 'failed' && 'bg-red-500/40'
-					)}
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
 				>
-					{status as string}
-				</div>
+					Team
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
 			)
 		},
 	},
 	{
-		accessorKey: 'amount',
-		header: () => <div className="text-right">Amount</div>,
-		cell: ({ row }) => {
-			const amount = parseFloat(row.getValue('amount'))
-			const formatted = new Intl.NumberFormat('en-US', {
-				style: 'currency',
-				currency: 'PHP',
-			}).format(amount)
-
-			return <div className="text-right font-medium">{formatted}</div>
+		accessorKey: 'employmentType',
+		header: 'Type',
+	},
+	{
+		accessorKey: 'employmentRole',
+		header: 'Role',
+	},
+	{
+		accessorKey: 'deploymentClientName',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+				>
+					Client
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			)
 		},
+	},
+	{
+		accessorKey: 'deploymentProjectName',
+		header: 'Project',
+	},
+	{
+		accessorKey: 'deploymentProjectCode',
+		header: 'S3P Number',
 	},
 	{
 		id: 'actions',
 		cell: ({ row }) => {
-			const payment = row.original
+			const rowData = row.original
 
 			return (
 				<DropdownMenu>
@@ -107,13 +119,12 @@ export const columns: ColumnDef<Payment>[] = [
 					<DropdownMenuContent align="end">
 						<DropdownMenuLabel>Actions</DropdownMenuLabel>
 						<DropdownMenuItem
-							onClick={() => navigator.clipboard.writeText(payment.id)}
+							onClick={() => navigator.clipboard.writeText(rowData.id)}
 						>
-							Copy payment ID
+							Copy Employee ID
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>View customer</DropdownMenuItem>
-						<DropdownMenuItem>View payment details</DropdownMenuItem>
+						<DropdownMenuItem>View Employee</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			)

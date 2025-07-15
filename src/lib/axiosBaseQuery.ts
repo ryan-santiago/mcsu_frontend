@@ -1,28 +1,52 @@
-import axios from 'axios'
+// lib/axiosBaseQuery.ts
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
+import axios, { AxiosRequestConfig, AxiosError } from 'axios'
 
 export const axiosBaseQuery =
-	(): BaseQueryFn<{ url: string; method: string; data?: any; params?: any }> =>
+	(): BaseQueryFn<
+		{
+			url: string
+			method: AxiosRequestConfig['method']
+			data?: AxiosRequestConfig['data']
+			params?: AxiosRequestConfig['params']
+		},
+		unknown,
+		unknown
+	> =>
 	async ({ url, method, data, params }) => {
 		try {
-			const token =
-				typeof window !== 'undefined' ? localStorage.getItem('token') : null
+			// ✅ Check for window object to avoid SSR/localStorage issues
+			let token: string | null = null
+
+			if (typeof window !== 'undefined') {
+				const persisted = localStorage.getItem('persist:root')
+				if (persisted) {
+					const parsed = JSON.parse(persisted)
+					const auth = parsed?.auth ? JSON.parse(parsed.auth) : null
+					token = auth?.token
+				}
+			}
+
+			const headers: AxiosRequestConfig['headers'] = {}
+			if (token) {
+				headers.Authorization = `Bearer ${token}`
+			}
 
 			const result = await axios({
-				baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-				url,
+				url: `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`,
 				method,
 				data,
 				params,
-				headers: token ? { Authorization: `Bearer ${token}` } : {},
+				headers,
 			})
 
 			return { data: result.data }
-		} catch (error: any) {
+		} catch (axiosError) {
+			const err = axiosError as AxiosError
 			return {
 				error: {
-					status: error.response?.status,
-					data: error.response?.data || error.message,
+					status: err.response?.status || 500,
+					data: err.response?.data || err.message,
 				},
 			}
 		}

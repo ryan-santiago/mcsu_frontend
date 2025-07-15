@@ -16,3 +16,30 @@ export interface LoginResponse {
 	token: string
 	data: User
 }
+
+export interface EmployeeDeployment {
+	id: string
+	code: string
+	fullName: string
+	firstName: string
+	middleName: string | null
+	lastName: string
+	suffix: string | null
+	birthDate: string
+	gender: string
+	emailAddress: string
+	mobileNumber: string
+	viberNumber: string
+	employmentType: string
+	employmentTeam: string
+	employmentRole: string
+	employmentLevel: string
+	employmentStartDate: string
+	employmentEndDate: string | null
+	deploymentStartDate: string
+	deploymentEndDate: string
+	deploymentProjectType: string
+	deploymentProjectCode: string
+	deploymentProjectName: string
+	deploymentClientName: string
+}
